@@ -35,28 +35,12 @@ public with sharing class ConfigurationCleanUpService {
         system.debug(lstlstvf);
     }
    
-    public void getWorkflows(){
+    /*public void getWorkflows(){
     	workflowList = ConfigurationCleanUpServiceHandler.getWorkflows();
     	System.debug('workflowList - '  + workflowList);
-    }
+    }*/
     public void deleteclasses(List<String> lstClassesToDelete)
     {
     	
-    	map<String,List<String>> failedComponentsToComment=new map<String,List<String>>();
-    	List<ApexClass> lstclasses=new List<ApexClass>();
-    	failedComponentsToComment.put('ApexTrigger',new List<String>());
-    	failedComponentsToComment.put('ApexClass',new List<String>());
-    	failedComponentsToComment.put('ApexPages',new List<String>());
-    	String key='ApexTrigger';
-    	typewiseMap = new Map<String, List<String>>();
-    	ConfigurationCleanUpServiceHandler c=new ConfigurationCleanUpServiceHandler();
-    	c.SearchInClass(lstClassesToDelete);
-    	c.SearchInPage(lstClassesToDelete);
-    	c.SearchInTrigger(lstClassesToDelete);
-    	typeWiseMap=c.getSummaryMap();
-    	System.debug('typeWiseMap='+typeWiseMap);
-    	Database.executeBatch(new CommentDependentClassesBatch(key,typeWiseMap,UserInfo.getSessionId(),failedComponentsToComment),10);
-    	//lstclasses=Configurationcleanupselector.getApexClasses(lstClassesToDelete);
-    	//Database.executeBatch(new DeleteclassesBatch(lstclasses,UserInfo.getSessionId()),10);
     }
 }

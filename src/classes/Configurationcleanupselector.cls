@@ -16,6 +16,11 @@ public with sharing class Configurationcleanupselector {
     //get visiualforce pages
     public static List<String> selectApexPages(List<String> searchKeywords)
     {
+    	System.debug('Inside Selector class selectApexPages');
+    	for(String s:searchKeywords)
+    	{
+    		System.debug('Page to search='+s);
+    	}
     	Map<ID, ApexPage> ApexpageBody = new Map<ID, ApexPage>([SELECT Id,Name,Markup FROM ApexPage]);
     	List<String> PageNames = new List<String>();
     	for(String s:searchKeywords)
@@ -23,8 +28,20 @@ public with sharing class Configurationcleanupselector {
 	        for (ID idKey : ApexpageBody.keyset()) 
 	        {
 	            ApexPage a = ApexpageBody.get(idKey);
-		            Boolean PageSearchResult = a.Markup.contains(s);
-		            if(PageSearchResult)
+	            	System.debug('a.pageName'+a.Name);
+	            	String pageMarkup=a.Markup.normalizeSpace();
+	            	String pageName=pageMarkup.substringAfter('=');
+	            	String finalPageName=pageName.substringBefore('>');
+	            	System.debug('finalPageName='+finalPageName);
+	            	//finalPageName.trim();
+	            	//finalPageName.replace('"','');
+	            	//System.debug('finalPageName='+finalPageName);
+	            	//System.debug('pageMarkup='+pageMarkup);
+		            //Boolean PageSearchResult = a.Markup.contains(s);
+		            System.debug('pageName='+finalPageName);
+		            System.debug('s='+s);
+		            //if(PageSearchResult)
+		            if(finalPageName=='"'+s+'"' || finalPageName==s)
 		            {
 		                PageNames.add(a.Name);
 		            }
@@ -73,5 +90,9 @@ public with sharing class Configurationcleanupselector {
   	public static Map<ID, ApexClass> getApexClassBody(String className)
   	{
   		return new Map<ID, ApexClass>([SELECT Id,Body,Name FROM ApexClass where Name=:className]);
+  	}
+  	public static List<AsyncApexJob> getAsyncApexJobStatus(List<String> lstAsyncApexJobNames){
+  		System.debug('lstAsyncApexJobNames='+lstAsyncApexJobNames);
+  		return new List<AsyncApexJob>([Select ApexClass.Name,ApexClassID,status from AsyncApexJob where ApexClass.name IN:lstAsyncApexJobNames]);
   	}
 }

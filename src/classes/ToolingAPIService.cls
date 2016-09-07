@@ -42,5 +42,21 @@ public class ToolingAPIService {
             HttpResponse res = h.send(req);
             system.debug('************************** Page Response'+res.getStatus());
     }
+    
+    public void AsyncApexJobDelete(ID a , String sessionID){
+        String endp = URL.getSalesforceBaseUrl().toExternalForm() +'/services/data/v29.0/tooling/sobjects/AsyncApexJob/'+ a;
+        System.debug('endp='+endp);
+            HttpRequest req = new HttpRequest();
+            req.setHeader('Authorization', 'OAuth  ' + sessionID);
+            req.setHeader('Content-Type', 'application/json');
+            req.setEndpoint(endp);
+            req.setMethod('DELETE');
+        
+            Http h = new Http();
+            HttpResponse res = h.send(req);
+            system.debug('************************** Page Response'+res.getStatus());
+			System.debug('Page Response='+res.getBody());            
+    }
+    
 
 }

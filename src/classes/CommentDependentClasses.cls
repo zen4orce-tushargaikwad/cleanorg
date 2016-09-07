@@ -1,35 +1,35 @@
 public with sharing class CommentDependentClasses {
-    String regExp = '*/';
-    String replacement = '*//*';
 
     public CommentDependentClasses(){
     }
     
-    public List<String> CommentMultipleClasses(List<String> lstCLasses, String sessionId)
+    public static List<String> CommentMultipleClasses(List<String> lstCLasses, String sessionId)
     {
     	//Http httpResponse = new Http();
+    	String sess=sessionId;
+    	System.debug('sessionId CommentDependentClasses = '+sess);
     	String classStatus;
     	List<String> failedclasses=new List<String>();
     	for(String str:lstCLasses)
     	{
     		JsonTest containerResponse = new JsonTest();
     		//pre-Step 1
-    		pollCurrentClass(sessionId);
+    		pollCurrentClass(UserInfo.getSessionId());
     		//Step 1 - Create MetadataContainer
-    		containerResponse = createMetadataContainer(str,sessionId);
+    		containerResponse = createMetadataContainer(str,sess);
     		//Step 2 - Create ApexClassMember
-    		classStatus=createApexClassMember(str,containerResponse,sessionId);
+    		classStatus=createApexClassMember(str,containerResponse,sess);
     		if(classStatus!='Created')
 	    	{
 	    		failedclasses.add(str);
 	    	}
     		//Step 3 - Create ContainerAsyncRequest
-    		createContainerAsyncRequest(containerResponse,sessionId);
+    		createContainerAsyncRequest(containerResponse,sess);
     	}
     	return failedclasses;
     }
     
-    public List<String> CommentMultipleTriggers(List<String> lstTrigger, String sessionId)
+    public static List<String> CommentMultipleTriggers(List<String> lstTrigger, String sessionId)
     {
 	    	//Http httpResponse = new Http();
 	    	String triggerStatus;
@@ -53,7 +53,7 @@ public with sharing class CommentDependentClasses {
 	    	return failedTriggers;
     } 
       
-    public List<String> CommentMultiplePages(List<String> lstPages, String sessionId)
+    public static List<String> CommentMultiplePages(List<String> lstPages, String sessionId)
     {
 	    	//Http httpResponse = new Http();
 	    	String pageStatus;
@@ -79,7 +79,7 @@ public with sharing class CommentDependentClasses {
 	    	return lstfailedPages;
     }  
        
-    public void pollcurrentTrigger(String sessionId)
+    public static void pollcurrentTrigger(String sessionId)
     {
     	HttpRequest apexTriggerRequest= new HttpRequest();
     	apexTriggerRequest.setHeader('Authorization', 'Bearer ' + sessionId);
@@ -92,7 +92,7 @@ public with sharing class CommentDependentClasses {
         System.debug('apexTriggerResponse='+apexTriggerResponse.getBody());
     }
     
-    public void pollcurrentApexPage(String sessionId)
+    public static void pollcurrentApexPage(String sessionId)
     {
     	HttpRequest apexApexPageRequest= new HttpRequest();
     	apexApexPageRequest.setHeader('Authorization', 'Bearer ' + sessionId);
@@ -105,7 +105,7 @@ public with sharing class CommentDependentClasses {
         System.debug('apexApexPageResponse'+apexApexPageResponse.getBody());
     }
     
-    public void pollCurrentClass(String sessionId){
+    public static void pollCurrentClass(String sessionId){
 
         //Request
         HttpRequest apexClassRequest = new HttpRequest();
@@ -116,10 +116,10 @@ public with sharing class CommentDependentClasses {
         //Response
         Http httpResponse = new Http();
         HttpResponse apexClassResponse = httpResponse.send(apexClassRequest);
-        System.debug('apexClassResponse='+apexClassResponse.getBody());
+        System.debug('apexClassResponse pollCurrentClass Method='+apexClassResponse.getBody());
     }
 
-    public JsonTest createMetadataContainer(String containerName, String sessionId){
+    public static JsonTest createMetadataContainer(String containerName, String sessionId){
 		
         //Request
         HttpRequest containerRequest = buildHttpRequest(URL.getSalesforceBaseUrl().toExternalForm()+'/services/data/v36.0/tooling/sobjects/MetadataContainer/', 'POST',sessionId);
@@ -137,7 +137,10 @@ public with sharing class CommentDependentClasses {
         return (JsonTest)JSON.Deserialize(containerResponse.getBody(), JsonTest.class);	
     }
 
-    public String createApexClassMember(String className, JsonTest containerResponse,String sessionId){
+    public static String createApexClassMember(String className, JsonTest containerResponse,String sessionId){
+        
+        String regExp = '*/';
+    	String replacement = '*//*';
         Map<ID, ApexClass> ApexClassBody=new Map<ID, ApexClass>();
         ApexClassBody=Configurationcleanupselector.getApexClassBody(className);
         //Map<ID, ApexClass> ApexClassBody = new Map<ID, ApexClass>([SELECT Id,Body,Name FROM ApexClass where Name=:className]); 
@@ -155,16 +158,20 @@ public with sharing class CommentDependentClasses {
             s2 =s2 + '*/ }';
             classBody = classBody + s1 + s2;   
             System.debug('CLass Boby after commenting'+classBody );
-        	apexClassRequest.setBody('{"ContentEntityId": "'+a.id+'", "MetadataContainerId": "'+  +'", "Body" : "' + classBody + '"}');
+        	apexClassRequest.setBody('{"ContentEntityId": "'+a.id+'", "MetadataContainerId": "'+ containerResponse.id+'", "Body" : "' + classBody + '"}');
         }
         //Response
         HttpResponse apexClassResponse = buildHttpResponse(apexClassRequest);
         System.debug('apexClassResponce='+apexClassResponse.getStatus());
+        System.debug('apexClassResponce='+apexClassResponse.getBody());
         return apexClassResponse.getStatus();
         
     }
     
-    public String createApexTriggerMember(String TriggerName, JsonTest containerResponse, String sessionId){
+    public static String createApexTriggerMember(String TriggerName, JsonTest containerResponse, String sessionId){
+        
+        String regExp = '*/';
+    	String replacement = '*//*';
         Map<ID, ApexTrigger> ApexTriggerBody=new Map<ID, ApexTrigger>();
         ApexTriggerBody=Configurationcleanupselector.getApexTrigger(TriggerName);
         //Map<ID, ApexTrigger> ApexTriggerBody = new Map<ID, ApexTrigger>([SELECT Id,Body,Name FROM ApexTrigger where Name=:TriggerName]); 
@@ -183,16 +190,17 @@ public with sharing class CommentDependentClasses {
             s2 =s2 + '*/ }';
             classBody = classBody + s1 + s2;   
             System.debug('CLass Boby after commenting'+classBody );
-        	apexTriggerRequest.setBody('{"ContentEntityId": "'+a.id+'", "MetadataContainerId": "'+  +'", "Body" : "' + classBody + '"}');
+        	apexTriggerRequest.setBody('{"ContentEntityId": "'+a.id+'", "MetadataContainerId": "'+ containerResponse.id +'", "Body" : "' + classBody + '"}');
         }
         //Response
         HttpResponse apexTriggerResponse = buildHttpResponse(apexTriggerRequest);
         System.debug('apexTriggerResponse'+apexTriggerResponse);
         System.debug('apexTriggerResponse='+apexTriggerResponse.getStatus());
+        System.debug('apexTriggerResponse='+apexTriggerResponse.getBody());
         return apexTriggerResponse.getStatus();
     }
     
-    public String createApexPageMember(String PageName, JsonTest containerResponse, String sessionId){
+    public static String createApexPageMember(String PageName, JsonTest containerResponse, String sessionId){
         //Map<ID, ApexPage> ApexPageBody = new Map<ID, ApexPage>();
         //ApexPageBody=Configurationcleanupselector.selectApexPagemarkup();
         ApexPage a=Configurationcleanupselector.selectApexPagemarkup(PageName);
@@ -225,7 +233,7 @@ public with sharing class CommentDependentClasses {
             classBody = s1+s2;
             //classBody = '<apex:page></apex:page>';   
             System.debug('CLass Body after commenting'+classBody);
-        	apexPageRequest.setBody('{"ContentEntityId": "'+a.id+'", "MetadataContainerId": "'+  +'","Body" : "' + classBody + '"}');
+        	apexPageRequest.setBody('{"ContentEntityId": "'+a.id+'", "MetadataContainerId": "'+  containerResponse.id+'","Body" : "' + classBody + '"}');
         	//req.setBody('{"Name" : "TestPageFromRest","Markup" : "<apex:page>hello</apex:page>","ControllerType" : "0","MasterLabel":"TestPageFromRest","ApiVersion":"29.0"}');
         //}
         //Response
@@ -235,7 +243,7 @@ public with sharing class CommentDependentClasses {
         return apexPageResponse.getStatus();
     }
 
-    public void createContainerAsyncRequest(JsonTest containerResponse, String sessionId){
+    public static void createContainerAsyncRequest(JsonTest containerResponse, String sessionId){
         JsonTest containerAsyncJson=new JsonTest(); 
         //Request
         HttpRequest containerAsyncRequest = buildHttpRequest(URL.getSalesforceBaseUrl().toExternalForm()+'/services/data/v36.0/tooling/sobjects/ContainerAsyncRequest/', 'POST',sessionId);
@@ -245,7 +253,7 @@ public with sharing class CommentDependentClasses {
         containerAsyncJson = (JsonTest)JSON.Deserialize(containerAsyncResponse.getBody(), JsonTest.class);
     }
     
-	public HttpRequest buildHttpRequest(String endpoint, String method, String sessionId){
+	public static HttpRequest buildHttpRequest(String endpoint, String method, String sessionId){
         HttpRequest request = new HttpRequest();
         request.setHeader('Authorization', 'Bearer ' + sessionId);
         request.setHeader('Content-Type', 'application/json');
@@ -254,7 +262,7 @@ public with sharing class CommentDependentClasses {
         return request;
     }
 
-    public HttpResponse buildHttpResponse(HttpRequest sendRequest){
+    public static HttpResponse buildHttpResponse(HttpRequest sendRequest){
         Http poll = new Http();
         HttpResponse pollResponse = poll.send(sendRequest);
         return pollResponse;

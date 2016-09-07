@@ -1,11 +1,11 @@
 global with sharing class DeleteclassesBatch implements Database.Batchable<ApexClass>, Database.Stateful, Database.AllowsCallouts{
 	public List<ApexClass> lstClassesToDelete;  
-	public String sessionId;// = UserInfo.getSessionId();
+	public String sessionId='';// = UserInfo.getSessionId();
 	public List<String> lstClassesFailedToDelete=new List<String>();
 	global DeleteclassesBatch(List<ApexClass> lstClassesForDelete,string sess)
 	{
 		sessionId = sess;
-		System.debug('In Cons sessionId'+sessionId);
+		System.debug('In Cons sessionId DeleteCLassBatch='+sessionId);
 		lstClassesToDelete=new List<ApexClass>();
 		lstClassesToDelete=lstClassesForDelete;
 	}
@@ -35,32 +35,25 @@ global with sharing class DeleteclassesBatch implements Database.Batchable<ApexC
         }
     }
     global void finish(Database.BatchableContext BC){
+    	String body;
     	if(lstClassesFailedToDelete.size()>0)
     	{
-	    	Id idOfCurrentBetch = BC.getJobId();
-	        //List<AsyncApexJob> lstAsyncApexJob = new List<AsyncApexJob>();
-	        AsyncApexJob lstAsyncApexJob = Configurationcleanupselector.asyncApexJobDetails(idOfCurrentBetch);
-	        AsyncApexJob a=lstAsyncApexJob;
-	    	Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-	        String[] toAddresses = new String[] {a.CreatedBy.Email};
-	        mail.setToAddresses(toAddresses);
-	        mail.setSubject('Classes failed to delete');
-			mail.setPlainTextBody('Due to some reason classes='+lstClassesFailedToDelete+'are failed to delete.');
-			Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+	    	body='Due to some reason classes='+lstClassesFailedToDelete+'are failed to delete.';
     	}
     	else
     	{
-	    	Id idOfCurrentBetch = BC.getJobId();
-	        //List<AsyncApexJob> lstAsyncApexJob = new List<AsyncApexJob>();
-	        AsyncApexJob lstAsyncApexJob = Configurationcleanupselector.asyncApexJobDetails(idOfCurrentBetch);
-	        AsyncApexJob a=lstAsyncApexJob;
-	    	Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-	        String[] toAddresses = new String[] {a.CreatedBy.Email};
-	        mail.setToAddresses(toAddresses);
-	        mail.setSubject('Classes Deleted Successfully');
-			mail.setPlainTextBody('Classes you were selected to delete are deleted successfully.');
-			Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
-		    	
+		    body='Classes you were selected to delete are deleted successfully.';
     	}
+    	System.debug('Email Body='+body);
+    	Id idOfCurrentBetch = BC.getJobId();
+	    //List<AsyncApexJob> lstAsyncApexJob = new List<AsyncApexJob>();
+	    AsyncApexJob lstAsyncApexJob = Configurationcleanupselector.asyncApexJobDetails(idOfCurrentBetch);
+	    AsyncApexJob a=lstAsyncApexJob;
+	    Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+	    String[] toAddresses = new String[] {a.CreatedBy.Email};
+	    mail.setToAddresses(toAddresses);
+	    mail.setSubject('Classes Deletion Result');
+		mail.setPlainTextBody(body);
+		Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
     }		
 }

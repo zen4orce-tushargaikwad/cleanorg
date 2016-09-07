@@ -5,15 +5,14 @@ public with sharing class ConfigurationCleanUpServiceHandler {
     
     public Map<String, Map<String, List<String>>> classwiseMap = new Map<String, Map<String, List<String>>>();
     public Map<String, List<String>> SummaryMap = new Map<String, List<String>>();
+    public Map<String, List<String>> typeWiseMap;
     public MetadataAPI mapi = new MetadataAPI();
     
     public ConfigurationCleanUpServiceHandler(){     
-        SummaryMap.put('ApexClass', null);
-        SummaryMap.put('ApexTrigger', null);
-        SummaryMap.put('ApexPages', null);
+       
         }
     
-    Public set<String> SearchInClass(List<String> searchKeywords)
+    Public List<String> SearchInClass(List<String> searchKeywords)
     {
         List<String> lstDependentCLasses = new List<String>();
         String keywordsToSearch;
@@ -38,10 +37,10 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         SummaryMap.put('ApexClass',lstclasses);
         System.debug('Dependent Classes='+lstclasses);
         System.debug('inside inclass');
-        return ClassSummary; 
+        return lstclasses; 
     }
     
-    Public void SearchInTrigger(List<String> searchKeywords)
+    Public List<String> SearchInTrigger(List<String> searchKeywords)
     {
         String keywordsToSearch;
         List<String> TriggerSummary = new list<String>();
@@ -60,15 +59,16 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         }
         System.debug('TriggerSummary='+TriggerSummary);
         System.debug('inside inTrigger');
-        SummaryMap.put('ApexTrigger', TriggerSummary); 
+        SummaryMap.put('ApexTrigger', TriggerSummary);
+        return TriggerSummary;  
     }
     
-    public Map<String, List<String>> getSummaryMap()
+    /*public Map<String, List<String>> getSummaryMap()
     {
     	return SummaryMap;
-    }
+    }*/
     
-    Public void SearchInPage(List<String> searchKeywords)
+    Public List<String> SearchInPage(List<String> searchKeywords)
     {        
         //Retriving Keyword Used in Pages
         List<String> PageNames = new List<String>();
@@ -76,6 +76,7 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         System.debug('Dependent Pages='+PageNames);
         SummaryMap.put('ApexPages', PageNames);
         System.debug('inside inclassPage');
+        return PageNames;
     }
 
     public static MetadataService.MetadataPort createService()
@@ -85,59 +86,27 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         service.SessionHeader.sessionId = UserInfo.getSessionId();
         return service;
     }
-    
-    /*public static Map<string, List<String>> getWorkflows()
+    public void deleteclasses(List<String> lstClassesToDelete)
     {
-    	Map<string, List<String>> WorkflowMap = new Map<string, List<String>>();
-    	MetadataAPI mapi = new MetadataAPI();
-        MetadataService.FileProperties[] fileproperties = mapi.listWorkflowMetadata();
-        if(fileproperties != null){
-        	list<String> WorkflowName;
-    		for(MetadataService.FileProperties fileProperty : fileproperties)
-    		{
-	    		if(fileProperty.fullName != null && fileProperty.fullName != '')
-    	        {
-        	        WorkflowName = new List<String>();                
-            	    string Objectname = fileProperty.fullName;
-                	if(WorkflowMap.containsKey(Objectname.substringBefore('.')))
-                	{ 
-	                    WorkflowName.addAll(WorkflowMap.get(Objectname.substringBefore('.')));
-    	                WorkflowName.add(Objectname.substringAfter('.'));   
-        	        }
-            	    else{
-                	   	WorkflowName.add(Objectname.substringAfter('.'));
-                	}
-               		WorkflowMap.put(Objectname.substringBefore('.'), WorkflowName);      
-    			}
-    		}
-        }
-    	return WorkflowMap;        
+    	
+    	List<String> lstDependentClasses=new List<String>();
+    	List<String> lstDependentPages=new List<String>();
+    	List<String> lstDependentTriggers=new List<String>();
+    	List<ApexClass> lstclasses=new List<ApexClass>();
+    	lstDependentClasses=SearchInClass(lstClassesToDelete);
+    	lstDependentPages=SearchInPage(lstClassesToDelete);
+    	lstDependentTriggers=SearchInTrigger(lstClassesToDelete);
+    	System.debug('lstDependentClasses='+lstDependentClasses);
+    	System.debug('lstDependentPages='+lstDependentPages);
+    	System.debug('lstDependentTriggers='+lstDependentTriggers);
+    	//typeWiseMap=getSummaryMap();
+    	//System.debug('typeWiseMap='+typeWiseMap);
+    	String sessionId=UserInfo.getSessionId();
+    	Integer count = System.purgeOldAsyncJobs(Date.today()+1);
+    	Database.executeBatch(new CommentDependentClassBatch(lstClassesToDelete,lstDependentClasses,sessionId),10);
+    	Database.executeBatch(new CommentDependentTriggersBatch(lstClassesToDelete,lstDependentTriggers,sessionId),10);
+    	Database.executeBatch(new CommentDependentPagesBatch(lstClassesToDelete,lstDependentPages,sessionId),10);
+    	//lstclasses=Configurationcleanupselector.getApexClasses(lstClassesToDelete);
+    	//Database.executeBatch(new DeleteclassesBatch(lstclasses,UserInfo.getSessionId()),10);
     }
-    public static Map<string, List<String>> getValidationRules()
-    {
-    	Map<string, List<String>> ValidationRuleMap = new Map<string, List<String>>();
-    	MetadataAPI mapi = new MetadataAPI();
-        MetadataService.FileProperties[] fileproperties = mapi.listValidationRuleMetadata();
-        if(fileproperties != null){
-        	list<String> ValidationRuleName;
-    		for(MetadataService.FileProperties fileProperty : fileproperties)
-    		{
-	    		if(fileProperty.fullName != null && fileProperty.fullName != '')
-    	        {
-        	        ValidationRuleName = new List<String>();                
-            	    string Objectname = fileProperty.fullName;
-                	if(ValidationRuleMap.containsKey(Objectname.substringBefore('.')))
-                	{ 
-                    	ValidationRuleName.addAll(ValidationRuleMap.get(Objectname.substringBefore('.')));
-                    	ValidationRuleName.add(Objectname.substringAfter('.'));   
-                	}
-                	else{
-	                    ValidationRuleName.add(Objectname.substringAfter('.'));
-    	            }
-        	       	ValidationRuleMap.put(Objectname.substringBefore('.'), ValidationRuleName);      
-    			}
-    		}
-        }
-    	return ValidationRuleMap;         
-    }*/
 }
