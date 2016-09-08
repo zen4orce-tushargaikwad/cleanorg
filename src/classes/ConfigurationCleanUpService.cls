@@ -13,6 +13,8 @@ public with sharing class ConfigurationCleanUpService {
     public List<String> selectedWorkflowList {get; set;}
     public List<String> selectedValidationRuleList {get; set;}
     
+    public String apexClassJson{get; set;}
+    
     public ConfigurationCleanUpService(){
     	/*visualforcePageList = VisualforcePageSelector.getVisualforcePages();
         lstlstvf=new List<List<String>>();
@@ -23,6 +25,9 @@ public with sharing class ConfigurationCleanUpService {
             lstvf.add('"'+a.Name+'"');
             lstlstvf.add(lstvf);
         }*/
+        List<ApexClass> lstAllAPexClasses=new List<ApexClass>();
+        lstAllAPexClasses=Configurationcleanupselector.getApexCsasses();
+        apexClassJson = ConfigurationCleanUpServiceHandler.generateJsonForApexPage(lstAllAPexClasses);
     }
     //Get list of triggers
     public void getTriggers(){
@@ -42,5 +47,39 @@ public with sharing class ConfigurationCleanUpService {
     public void deleteclasses(List<String> lstClassesToDelete)
     {
     	
+    }
+    public void CleanConfigurations(){
+    	/*System.debug('ConfigName - '+ConfigName);
+    	if(ConfigName == 'Trigger'){
+    		List<String> triggersToDelete = new List<String>();
+    		for(String details:ConfigurationList.split(',')){
+    			triggersToDelete.add(details.split('\\$')[2]);
+    		}
+        	TriggerService.deleteTrigger(triggersToDelete);
+    	}
+    	else if(ConfigName == 'ApexPage'){
+    		List<String> ApexPageToDelete = new List<String>();
+    		for(String details:ConfigurationList.split(',')){
+    			ApexPageToDelete.add(details.split('\\$')[0]);
+    		}
+        	//ApexPageService.deleteApexPages(ApexPageToDelete);
+    	}
+    	else if(ConfigName == 'WorkflowRules'){
+    		List<String> WorkflowRuleToDelete = new List<String>();
+    		for(String details:ConfigurationList.split(',')){
+    			WorkflowRuleToDelete.add(details.split('\\$')[0]+'.'+details.split('\\$')[2]);
+    		}
+            System.debug('WorkflowRuleToDelete - ' + WorkflowRuleToDelete);
+    		WorkflowService.deleteWorkflows(WorkflowRuleToDelete);
+    	}
+        else if(ConfigName == 'ValidationRules'){
+    		List<String> ValidationRuleToDelete = new List<String>();
+    		for(String details:ConfigurationList.split(',')){
+    			ValidationRuleToDelete.add(details.split('\\$')[0]+'.'+details.split('\\$')[2]);
+    		}
+            ValidationRuleService.deleteValidationRules(ValidationRuleToDelete);
+            System.debug('ValidationRuleToDelete - ' + ValidationRuleToDelete);
+        	//ApexPageService.deleteApexPages(ValidationRuleToDelete);
+    	}*/
     }
 }

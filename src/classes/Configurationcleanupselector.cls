@@ -95,4 +95,9 @@ public with sharing class Configurationcleanupselector {
   		System.debug('lstAsyncApexJobNames='+lstAsyncApexJobNames);
   		return new List<AsyncApexJob>([Select ApexClass.Name,ApexClassID,status from AsyncApexJob where ApexClass.name IN:lstAsyncApexJobNames]);
   	}
+  	public static List<ApexClass> getApexCsasses()
+  	{
+  		List<ApexClass> lstApexCLasses=new List<ApexClass>([select id,Name from ApexClass]);
+  		return lstApexCLasses;
+  	}
 }

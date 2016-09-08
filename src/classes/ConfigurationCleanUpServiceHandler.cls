@@ -7,9 +7,10 @@ public with sharing class ConfigurationCleanUpServiceHandler {
     public Map<String, List<String>> SummaryMap = new Map<String, List<String>>();
     public Map<String, List<String>> typeWiseMap;
     public MetadataAPI mapi = new MetadataAPI();
+    Public List<ApexClass> lstAllAPexClasses=new List<ApexClass>();
     
     public ConfigurationCleanUpServiceHandler(){     
-       
+       		//lstAllAPexClasses=Configurationcleanupselector.getApexCsasses();
         }
     
     Public List<String> SearchInClass(List<String> searchKeywords)
@@ -79,13 +80,41 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         return PageNames;
     }
 
-    public static MetadataService.MetadataPort createService()
+    /*public static MetadataService.MetadataPort createService()
     {
         MetadataService.MetadataPort service = new MetadataService.MetadataPort();
         service.SessionHeader = new MetadataService.SessionHeader_element();
         service.SessionHeader.sessionId = UserInfo.getSessionId();
         return service;
+    }*/
+    
+    public static string generateJsonForApexPage(List<ApexClass> lstAllApexClasses){
+    	JSONGenerator gen = JSON.createGenerator(true);
+        gen.writeStartObject();
+        gen.writeFieldName('data');
+        gen.writeStartArray();
+        Integer count = 1;	
+        
+        for(ApexClass apexClassObj: lstAllAPexClasses){
+         	gen.writeStartObject();
+        	gen.writeStringField('id', String.valueOf(count));
+        	gen.writeStringField('configID', apexClassObj.ID);
+        	gen.writeStringField('name', apexClassObj.Name);
+        	gen.writeStringField('enbl', '0');
+        	gen.writeStringField('level', '0');
+        	gen.writeStringField('parent', '');
+        	gen.writeStringField('isLeaf', 'false');
+        	gen.writeStringField('expanded', 'false');
+        	gen.writeStringField('loaded', 'false');
+        	gen.writeEndObject();
+			count++;
+        }
+         gen.writeEndArray();
+        gen.writeEndObject();
+        System.debug('gen.getAsString()='+gen.getAsString());
+        return gen.getAsString();
     }
+    
     public void deleteclasses(List<String> lstClassesToDelete)
     {
     	
