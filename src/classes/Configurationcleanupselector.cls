@@ -28,18 +28,18 @@ public with sharing class Configurationcleanupselector {
 	        for (ID idKey : ApexpageBody.keyset()) 
 	        {
 	            ApexPage a = ApexpageBody.get(idKey);
-	            	System.debug('a.pageName'+a.Name);
+	            	//System.debug('a.pageName'+a.Name);
 	            	String pageMarkup=a.Markup.normalizeSpace();
 	            	String pageName=pageMarkup.substringAfter('=');
 	            	String finalPageName=pageName.substringBefore('>');
-	            	System.debug('finalPageName='+finalPageName);
+	            	//System.debug('finalPageName='+finalPageName);
 	            	//finalPageName.trim();
 	            	//finalPageName.replace('"','');
 	            	//System.debug('finalPageName='+finalPageName);
 	            	//System.debug('pageMarkup='+pageMarkup);
 		            //Boolean PageSearchResult = a.Markup.contains(s);
-		            System.debug('pageName='+finalPageName);
-		            System.debug('s='+s);
+		            //System.debug('pageName='+finalPageName);
+		            //System.debug('s='+s);
 		            //if(PageSearchResult)
 		            if(finalPageName=='"'+s+'"' || finalPageName==s)
 		            {

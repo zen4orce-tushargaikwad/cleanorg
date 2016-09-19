@@ -14,8 +14,27 @@ public with sharing class ConfigurationCleanUpService {
     public List<String> selectedValidationRuleList {get; set;}
     
     public String apexClassJson{get; set;}
+    public string dependentClassesJson{get; set;}
+    public string dependentPagesJson{get; set;}
+    public string dependentTriggersJson{get; set;}
+    
+    public List<String> lstDependentPages;
+   	public List<String> lstDependentClasses;
+   	public List<String> lstDependentTriggers;
+    
+    
+    public List<List<String>> lstlstPages{get;set;}
+    public List<List<String>> lstlstClasses{get;set;}
+    public List<List<String>> lstlstTriggers{get;set;}
+    
+    public List<String> selectedClasses;
+    public String ConfigurationList{get;set;}
+    public string ConfigName{get;set;}
     
     public ConfigurationCleanUpService(){
+    	lstlstPages = new List<List<String>>();
+    	lstlstClasses=new List<List<String>>();
+    	lstlstTriggers=new List<List<String>>();
     	/*visualforcePageList = VisualforcePageSelector.getVisualforcePages();
         lstlstvf=new List<List<String>>();
         List<String> lstvf;
@@ -28,6 +47,7 @@ public with sharing class ConfigurationCleanUpService {
         List<ApexClass> lstAllAPexClasses=new List<ApexClass>();
         lstAllAPexClasses=Configurationcleanupselector.getApexCsasses();
         apexClassJson = ConfigurationCleanUpServiceHandler.generateJsonForApexPage(lstAllAPexClasses);
+        System.debug('apexClassJson='+apexClassJson);
     }
     //Get list of triggers
     public void getTriggers(){
@@ -40,13 +60,47 @@ public with sharing class ConfigurationCleanUpService {
         system.debug(lstlstvf);
     }
    
+   	public void dependents(){
+   		//ConfigurationList=new List<String>();
+   		//System.debug('ConfigurationList'+ConfigurationList);
+   		selectedClasses=new List<String>();
+   		for(String s:ConfigurationList.split(','))
+   		{
+   			selectedClasses.add(s);
+   		}
+   		//System.debug('selectedClasses='+selectedClasses);
+   		lstDependentPages=new List<String>();
+   		lstDependentClasses = new List<String>();
+   		lstDependentTriggers =  new List<String>();
+   		lstDependentPages=ConfigurationCleanUpServiceHandler.SearchInPage(selectedClasses);
+   		lstDependentClasses=ConfigurationCleanUpServiceHandler.SearchInClass(selectedClasses);
+   		lstDependentTriggers=ConfigurationCleanUpServiceHandler.SearchInTrigger(selectedClasses);
+   		
+   		dependentClassesJson=ConfigurationCleanUpServiceHandler.generateJson(lstDependentClasses);
+   		dependentPagesJson=ConfigurationCleanUpServiceHandler.generateJson(lstDependentPages);
+   		dependentTriggersJson=ConfigurationCleanUpServiceHandler.generateJson(lstDependentTriggers);
+   		//System.debug('dependentClassesJson='+dependentClassesJson);
+   		//System.debug('dependentPagesJson='+dependentPagesJson);
+   		//System.debug('dependentTriggersJson'+dependentTriggersJson);
+   		
+   		//System.debug('lstDependentPages='+lstDependentPages);
+   		//System.debug('lstDependentClasses='+lstDependentClasses);
+   		//System.debug('lstDependentTriggers='+lstDependentTriggers);
+   		List<List<String>> someList = new List<List<String>>();
+   		lstlstPages=new List<List<String>>();
+   		lstlstClasses=new List<List<String>>();
+   		lstlstTriggers=new List<List<String>>();
+        List<String> someOtherList;// = new List<String>();
+        lstlstPages = new List<List<String>>();
+   	}
+   
     /*public void getWorkflows(){
     	workflowList = ConfigurationCleanUpServiceHandler.getWorkflows();
     	System.debug('workflowList - '  + workflowList);
     }*/
-    public void deleteclasses(List<String> lstClassesToDelete)
+    public void deleteclasses()
     {
-    	
+    	ConfigurationCleanUpServiceHandler.deleteclasses(selectedClasses,lstDependentClasses,lstDependentTriggers,lstDependentPages);
     }
     public void CleanConfigurations(){
     	/*System.debug('ConfigName - '+ConfigName);

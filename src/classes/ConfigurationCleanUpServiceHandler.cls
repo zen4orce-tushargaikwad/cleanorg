@@ -13,7 +13,7 @@ public with sharing class ConfigurationCleanUpServiceHandler {
        		//lstAllAPexClasses=Configurationcleanupselector.getApexCsasses();
         }
     
-    Public List<String> SearchInClass(List<String> searchKeywords)
+    Public static List<String> SearchInClass(List<String> searchKeywords)
     {
         List<String> lstDependentCLasses = new List<String>();
         String keywordsToSearch;
@@ -35,13 +35,13 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         }
         ClassSummary.removeAll(searchKeywords);
         lstclasses.addAll(ClassSummary);
-        SummaryMap.put('ApexClass',lstclasses);
-        System.debug('Dependent Classes='+lstclasses);
-        System.debug('inside inclass');
+       //SummaryMap.put('ApexClass',lstclasses);
+        //System.debug('Dependent Classes='+lstclasses);
+        //System.debug('inside inclass');
         return lstclasses; 
     }
     
-    Public List<String> SearchInTrigger(List<String> searchKeywords)
+    Public static List<String> SearchInTrigger(List<String> searchKeywords)
     {
         String keywordsToSearch;
         List<String> TriggerSummary = new list<String>();
@@ -58,9 +58,9 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         ApexTrigger Triggers = (ApexTrigger) TriggersResults.getSObject();
             TriggerSummary.add(Triggers.Name);
         }
-        System.debug('TriggerSummary='+TriggerSummary);
-        System.debug('inside inTrigger');
-        SummaryMap.put('ApexTrigger', TriggerSummary);
+        //System.debug('TriggerSummary='+TriggerSummary);
+        //System.debug('inside inTrigger');
+       // SummaryMap.put('ApexTrigger', TriggerSummary);
         return TriggerSummary;  
     }
     
@@ -69,14 +69,14 @@ public with sharing class ConfigurationCleanUpServiceHandler {
     	return SummaryMap;
     }*/
     
-    Public List<String> SearchInPage(List<String> searchKeywords)
+    Public static List<String> SearchInPage(List<String> searchKeywords)
     {        
         //Retriving Keyword Used in Pages
         List<String> PageNames = new List<String>();
         PageNames=Configurationcleanupselector.selectApexPages(searchKeywords);
-        System.debug('Dependent Pages='+PageNames);
-        SummaryMap.put('ApexPages', PageNames);
-        System.debug('inside inclassPage');
+        //System.debug('Dependent Pages='+PageNames);
+        //SummaryMap.put('ApexPages', PageNames);
+       // System.debug('inside inclassPage');
         return PageNames;
     }
 
@@ -115,7 +115,49 @@ public with sharing class ConfigurationCleanUpServiceHandler {
         return gen.getAsString();
     }
     
-    public void deleteclasses(List<String> lstClassesToDelete)
+    
+    public static string generateJson(List<String> lstComponents){
+    	JSONGenerator gen = JSON.createGenerator(true);
+        gen.writeStartObject();
+        gen.writeFieldName('data');
+        gen.writeStartArray();
+        Integer count = 1;	
+        
+        for(String apexClassObj: lstComponents){
+         	gen.writeStartObject();
+        	gen.writeStringField('id', String.valueOf(count));
+        	gen.writeStringField('configID', '');
+        	gen.writeStringField('name', apexClassObj);
+        	gen.writeStringField('enbl', '0');
+        	gen.writeStringField('level', '0');
+        	gen.writeStringField('parent', '');
+        	gen.writeStringField('isLeaf', 'false');
+        	gen.writeStringField('expanded', 'false');
+        	gen.writeStringField('loaded', 'false');
+        	gen.writeEndObject();
+			count++;
+        }
+         gen.writeEndArray();
+        gen.writeEndObject();
+        System.debug('gen.getAsString()='+gen.getAsString());
+        return gen.getAsString();
+    }
+    
+    
+    
+    public static void deleteclasses(List<String> lstClassesToDelete,List<String> lstDependentClasses,List<String> lstDependentTriggers ,List<String> lstDependentPages)
+    {
+    	lstDependentClasses=SearchInClass(lstClassesToDelete);
+    	lstDependentPages=SearchInPage(lstClassesToDelete);
+    	lstDependentTriggers=SearchInTrigger(lstClassesToDelete);	
+    	String sessionId=UserInfo.getSessionId();
+    	Integer count = System.purgeOldAsyncJobs(Date.today()+1);
+    	Database.executeBatch(new CommentDependentClassBatch(lstClassesToDelete,lstDependentClasses,sessionId),10);
+    	Database.executeBatch(new CommentDependentTriggersBatch(lstClassesToDelete,lstDependentTriggers,sessionId),10);
+    	Database.executeBatch(new CommentDependentPagesBatch(lstClassesToDelete,lstDependentPages,sessionId),10);
+    }
+    
+    /*public void deleteclasses(List<String> lstClassesToDelete)
     {
     	
     	List<String> lstDependentClasses=new List<String>();
@@ -137,5 +179,5 @@ public with sharing class ConfigurationCleanUpServiceHandler {
     	Database.executeBatch(new CommentDependentPagesBatch(lstClassesToDelete,lstDependentPages,sessionId),10);
     	//lstclasses=Configurationcleanupselector.getApexClasses(lstClassesToDelete);
     	//Database.executeBatch(new DeleteclassesBatch(lstclasses,UserInfo.getSessionId()),10);
-    }
+    }*/
 }

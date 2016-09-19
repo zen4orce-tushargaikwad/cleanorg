@@ -51,6 +51,9 @@ global with sharing class CommentDependentPagesBatch implements Database.Batchab
 	        mail.setSubject('Details of Pages failed to Comment');
 			mail.setPlainTextBody(body);
 			Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+			
+			
+			
 			List<AsyncApexJob> lstAsyncApexJobNew=new List<AsyncApexJob>();
 			List<String> lstJobNames=new List<String>();
 			lstJobNames.add('CommentDependentPagesBatch');

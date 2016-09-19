@@ -54,6 +54,9 @@ global with sharing class CommentDependentTriggersBatch implements Database.Batc
 	        mail.setSubject('Details of Triggers Comment');
 			mail.setPlainTextBody(body);
 			Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
+			
+			
+			
 			List<String> lstJobNames=new List<String>();
 			lstJobNames.add('CommentDependentPagesBatch');
 			lstJobNames.add('CommentDependentClassBatch');

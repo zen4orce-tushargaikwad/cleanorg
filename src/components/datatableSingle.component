@@ -1,4 +1,4 @@
-<apex:component Controller="ConfigurationCleanUpService">
+<apex:component Controller="ConfigurationCleanUpService" allowDML="true">
      <apex:attribute name="typeofConfig" description="sample" type="String" required="true"/>
     <apex:attribute name="Header1" description="" type="String" required="true"/>
     <apex:attribute name="Header2" description="" type="String" required="true"/>
@@ -7,7 +7,8 @@
     <apex:form >
  	<head> 
 		<script>
-			j$ = jQuery.noConflict();
+		
+		 j$ = jQuery.noConflict();
               toastr.options = {
   				"closeButton": false,
   				"debug": false,
@@ -33,6 +34,10 @@
         var {!typeofConfig}ObjectData = [];//triggersObjectData
         var {!typeofConfig}Data = [];//triggersData
         var {!typeofConfig}SelectedData = [];//selectedTriggersData
+        
+        var dependentClassesTable;
+        var dependentPagesTable;
+        var dependentTriggersTable;
 
              function delete{!typeofConfig}() {	
                 
@@ -52,7 +57,7 @@
     				CleanConfigurations{!typeofConfig}({!typeofConfig}ToDelete,'{!typeofConfig}');
     			}
     			else{
-    				toastr.error('No triggers selected');
+    				toastr.error('No Classes selected');
     			}
 			}
             
@@ -77,7 +82,7 @@
            j$(document).ready(function () {
                j$('.panel-group').on('hidden.bs.collapse', toggleIcon);
     			j$('.panel-group').on('shown.bs.collapse', toggleIcon);
-               
+               debugger;
                {!typeofConfig}SelectedTable = j$('#{!typeofConfig}SelectedDTTable').DataTable({
          		"paging":   false,
         		"ordering": false,
@@ -91,7 +96,7 @@
                             	}); 
                             }
                         }
-                 
+                 debugger;
                     {!typeofConfig}PreviewTable = j$('#{!typeofConfig}byObjectDTTable').DataTable({
         			data: {!typeofConfig}ObjectData,
                         "oLanguage": {
@@ -115,6 +120,11 @@
                 						}
             				}
         		]});	
+        		
+        		var emptyJson='{"data":[]}';
+        		getDependentClasses(emptyJson);
+               	getDependentPages(emptyJson);
+              	getDependentTriggers(emptyJson);
 			});
            
             function loadSelected{!typeofConfig}Table(objectName,isSelected){
@@ -134,6 +144,7 @@
                         }
                 {!typeofConfig}SelectedTable.destroy();
                 {!typeofConfig}SelectedTable = j$('#{!typeofConfig}SelectedDTTable').DataTable( {
+                
         			data: {!typeofConfig}SelectedData,
                     "oLanguage": {
                         "sInfo": "_TOTAL_ entries",//"_START_ to _END_ of _TOTAL_ entries",
@@ -146,9 +157,119 @@
                       columns: [{ "data": "name" }]});//,{ "data": "configID", "visible": false }
                   
             }
+            
          	function CleanConfigurationsCompleted(){
          	toastr.success('Batch is initiated. Email notification will be sent to you soon.');
          	}
+         	
+         		
+         	
+         	function destroyTables(){
+         		dependentClassesTabel.destroy();
+         		dependentPagesTabel.destroy();
+         		dependentTriggersTabel.destroy();
+         	}
+         	
+         	function getDependentClasses(dependentClasses) {
+        		debugger;
+        		//dependentClassesTabel.destroy();
+	        	var lstdependent = JSON.parse(dependentClasses);  
+	        	var lstDependentClasses=[];
+	        	j$("#dependentClasses").append("<ul></ul>");
+	        	for (var i = 0; i < lstdependent.data.length; i++) {
+                            var item = lstdependent.data[i];
+                            lstDependentClasses.push({
+                                		"name": item.name
+                            		});
+                        }
+	        	 debugger;
+    	 		dependentClassesTabel=j$('#selectedClasses').DataTable({
+        	 	data:lstDependentClasses,
+         		"oLanguage": {
+                        "sInfo": "_TOTAL_ entries",//"_START_ to _END_ of _TOTAL_ entries",
+         					"sInfoEmpty": "0 to 0 of 0 entries",
+                        	"oPaginate": {
+								"sPrevious": "<", // This is the link to the previous page
+                                "sNext": ">"// This is the link to the next page
+							}
+      					},
+         		columns: [
+            		{ "data": "name"}
+	         	] 
+    	 		});
+			}
+			
+			function getDependentPages(dependentPages) {
+        		debugger;
+        		//dependentPagesTabel.destroy();
+	        	var lstdependent = JSON.parse(dependentPages);  
+	        	var lstDependentPages=[];
+	        	for (var i = 0; i < lstdependent.data.length; i++) {
+                            var item = lstdependent.data[i];
+                            lstDependentPages.push({
+                                		"name": item.name
+                            		});
+                        }
+	        	
+    	 		dependentPagesTabel=j$('#selectedPages').DataTable({
+        	 	data:lstDependentPages,
+        	 	"oLanguage": {
+                        "sInfo": "_TOTAL_ entries",//"_START_ to _END_ of _TOTAL_ entries",
+         					"sInfoEmpty": "0 to 0 of 0 entries",
+                        	"oPaginate": {
+								"sPrevious": "<", // This is the link to the previous page
+                                "sNext": ">"// This is the link to the next page
+							}
+      					},
+         		columns: [
+            		{ "data": "name"}
+	         	] 
+    	 		});
+			}
+			
+			function getDependentTriggers(dependentriggers) {
+        		debugger;
+        		//dependentTriggersTabel.destroy();
+	        	var lstdependent = JSON.parse(dependentriggers);
+	        	var lstDependentTriggers=[];   
+	        	for (var i = 0; i < lstdependent.data.length; i++) {
+                            var item = lstdependent.data[i];
+                            lstDependentTriggers.push({
+                                		"name": item.name
+                            		});
+                        }
+    	 		dependentTriggersTabel=j$('#selectedTriggers').DataTable({
+        	 	data:lstDependentTriggers,
+        	 	"oLanguage": {
+                        "sInfo": "_TOTAL_ entries",//"_START_ to _END_ of _TOTAL_ entries",
+         					"sInfoEmpty": "0 to 0 of 0 entries",
+                        	"oPaginate": {
+								"sPrevious": "<", // This is the link to the previous page
+                                "sNext": ">"// This is the link to the next page
+							}
+      					},
+         		columns: [
+            		{ "data": "name"}
+	         	] 
+    	 		});
+			}
+			
+			
+			function CheckData(a,b,c){
+				destroyTables();
+				console.log("Inside console");
+                console.log(a);
+				console.log(b);
+				console.log(c);
+                getDependentClasses(b);
+                getDependentPages(a);
+                getDependentTriggers(c);
+				j$('#load').modal('show');
+			}
+			function callForDelete(){
+				deleteSelectedClasses();
+				alert("Action from bootstrap modal");
+			}
 		</script>
 	</head>
 	<body>
@@ -193,17 +314,49 @@
             </div>
              <div class="col-md-4"></div>
 		</div>
+		
 				<div class="btn-group" style="float:right;">
   <p><apex:outputText value="" id="view" /></p>
-        <apex:actionFunction name="CleanConfigurations{!typeofConfig}" action="{!CleanConfigurations}" rerender="view" oncomplete="CleanConfigurationsCompleted();">     
-     		<apex:param id="ConfigListParam" name="ConfigList"  assignTo="{!ConfigurationList}" value="" />
-            <apex:param id="configNameParam" name="configName"  assignTo="{!ConfigName}" value="" />
+  		
+        <apex:actionFunction name="CleanConfigurations{!typeofConfig}" action="{!dependents}" rerender="" oncomplete="dependentPages='{!dependentPagesJson}';dependentClasses='{!dependentClassesJson}';dependentTriggers='{!dependentTriggersJson}';CheckData(dependentPages,dependentClasses,dependentTriggers);">     
+     		<apex:param id="ConfigListParam" name="ConfigList"  assignTo="{!ConfigurationList}" value="{!typeofConfig}SelectedData" />
+            <apex:param id="configNameParam" name="configName"  assignTo="{!ConfigName}" value="{!typeofConfig}" />
  		</apex:actionFunction>
-        <apex:commandLink onclick="delete{!typeofConfig}();return false;" >               
-       		<apex:commandButton value="Proceed" styleClass="btn btn-default" />
+ 		<apex:actionFunction name="deleteSelectedClasses" action="{!deleteclasses}">
+ 			
+ 		</apex:actionFunction>
+        <apex:commandLink onclick="delete{!typeofConfig}();return false;">               
+       		 <apex:commandButton value="Proceed" styleClass="btn btn-default" /> 
+       		<!--<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#load">Confirm</button>-->
         </apex:commandLink>
 </div>
       
 	</body>
+<div class="modal fade" id="load" role="dialog">
+  <div class="modal-dialog modal-md">
+   <!-- Modal content-->
+   <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+     <h4 class="modal-title">Summary</h4>
+    </div>
+    <div class="modal-body" style="overflow-y: auto; height: 500px;" id="dependentClasses">  
+     <font size="4" color="#ff794d">Dependent Pages </font>
+     
+      <table id="selectedPages" class="display"></table>
+     <br /> <br />
+     <font size="4" color="#ff794d">Dependent Classes </font>
+     <table id="selectedClasses" class="display"></table>
+     <br /> <br />
+     <font size="4" color="#ff794d">Dependent Triggers </font>
+     <table id="selectedTriggers" class="display"></table>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" onClick="callForDelete()">Confirm</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+    </div>
+   </div>
+   </div>
+  </div>
 	</apex:form>
 </apex:component>
