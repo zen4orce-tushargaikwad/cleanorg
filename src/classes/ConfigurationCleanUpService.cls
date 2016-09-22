@@ -18,9 +18,9 @@ public with sharing class ConfigurationCleanUpService {
     public string dependentPagesJson{get; set;}
     public string dependentTriggersJson{get; set;}
     
-    public List<String> lstDependentPages;
-   	public List<String> lstDependentClasses;
-   	public List<String> lstDependentTriggers;
+    public List<String> lstDependentPages{get;set;}
+   	public List<String> lstDependentClasses{get;set;}
+   	public List<String> lstDependentTriggers{get;set;}
     
     
     public List<List<String>> lstlstPages{get;set;}

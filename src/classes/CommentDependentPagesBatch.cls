@@ -54,7 +54,7 @@ global with sharing class CommentDependentPagesBatch implements Database.Batchab
 			
 			
 			
-			List<AsyncApexJob> lstAsyncApexJobNew=new List<AsyncApexJob>();
+			/*List<AsyncApexJob> lstAsyncApexJobNew=new List<AsyncApexJob>();
 			List<String> lstJobNames=new List<String>();
 			lstJobNames.add('CommentDependentPagesBatch');
 			lstJobNames.add('CommentDependentClassBatch');
@@ -64,7 +64,7 @@ global with sharing class CommentDependentPagesBatch implements Database.Batchab
 			if(lstAsyncApexJobNew[0].status=='Completed' && lstAsyncApexJobNew[1].status=='Completed' && lstAsyncApexJobNew[2].status=='Completed')
 			{
 				Database.executeBatch(new DeleteclassesBatch(lstclasses,sessionId),10);
-			}
+			}*/
 			System.debug('Inside CommentDependentPagesBatch finish');
     }		    
 }

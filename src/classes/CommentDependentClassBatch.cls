@@ -63,7 +63,7 @@ global with sharing class CommentDependentClassBatch implements Database.Batchab
 	        mail.setSubject('Details of Classes Comment');
 			mail.setPlainTextBody(body);
 			Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
-			List<AsyncApexJob> lstAsyncApexJobNew=new List<AsyncApexJob>();
+			/*List<AsyncApexJob> lstAsyncApexJobNew=new List<AsyncApexJob>();
 			List<String> lstJobNames=new List<String>();
 			lstJobNames.add('CommentDependentPagesBatch');
 			lstJobNames.add('CommentDependentClassBatch');
@@ -75,7 +75,7 @@ global with sharing class CommentDependentClassBatch implements Database.Batchab
 			{
 				Database.executeBatch(new DeleteclassesBatch(lstclasses,sessionId),10);
 				
-			}
+			}*/
 			System.debug('Inside CommentDependentClassBatch finish');
     }		
 }

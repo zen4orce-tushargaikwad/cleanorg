@@ -57,7 +57,7 @@ global with sharing class CommentDependentTriggersBatch implements Database.Batc
 			
 			
 			
-			List<String> lstJobNames=new List<String>();
+			/*List<String> lstJobNames=new List<String>();
 			lstJobNames.add('CommentDependentPagesBatch');
 			lstJobNames.add('CommentDependentClassBatch');
 			lstJobNames.add('CommentDependentTriggersBatch');
@@ -66,7 +66,7 @@ global with sharing class CommentDependentTriggersBatch implements Database.Batc
 			if(lstAsyncApexJobNew[0].status=='Completed' && lstAsyncApexJobNew[1].status=='Completed' && lstAsyncApexJobNew[2].status=='Completed')
 			{
 				Database.executeBatch(new DeleteclassesBatch(lstclasses,sessionId),10);
-			}
+			}*/
 			System.debug('Inside CommentDependentTriggersBatch finish');
     }		    
 }

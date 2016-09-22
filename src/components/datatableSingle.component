@@ -1,14 +1,13 @@
-<apex:component Controller="ConfigurationCleanUpService" allowDML="true">
+<apex:component Controller="NewConfigurationCleanupService" allowDML="true">
      <apex:attribute name="typeofConfig" description="sample" type="String" required="true"/>
     <apex:attribute name="Header1" description="" type="String" required="true"/>
     <apex:attribute name="Header2" description="" type="String" required="true"/>
     <apex:attribute name="Icon1" description="" type="String" required="true"/>
+    <apex:attribute name="jsonData" description="" type="String" required="true"/>
     
     <apex:form >
- 	<head> 
-		<script>
-		
-		 j$ = jQuery.noConflict();
+       <script>
+			j$ = jQuery.noConflict();
               toastr.options = {
   				"closeButton": false,
   				"debug": false,
@@ -26,47 +25,66 @@
   				"showMethod": "fadeIn",
   				"hideMethod": "fadeOut"
 			}; 
-          
-        var apexPageData = {!apexClassJson};
+          debugger;
+        var configTypeSingle = '{!typeofConfig}';
+         var configJsonData{!typeofConfig} = {!jsonData};
+      	
         var {!typeofConfig}PreviewTable;//triggerPreviewTable
         var {!typeofConfig}SelectedTable;//selectedTriggersTable
         //var {!typeofConfig}ObjTable;//triggerObjTable
         var {!typeofConfig}ObjectData = [];//triggersObjectData
         var {!typeofConfig}Data = [];//triggersData
         var {!typeofConfig}SelectedData = [];//selectedTriggersData
-        
-        var dependentClassesTable;
-        var dependentPagesTable;
-        var dependentTriggersTable;
 
              function delete{!typeofConfig}() {	
-                
+                showLoader();
                  var {!typeofConfig}ToDelete = [];
+                 
+                //Added for getting names of selected apex classes
+                if('{!typeofConfig}'=='ApexClass'){
+                	if({!typeofConfig}SelectedData != null){
+	                 	for(var iCount = 0;iCount < {!typeofConfig}SelectedData.length;iCount++){
+	                 		if({!typeofConfig}ToDelete != ''){
+	                    	{!typeofConfig}ToDelete = {!typeofConfig}SelectedData[iCount].name +','+ {!typeofConfig}ToDelete;
+	                        }
+	                        else{
+	                            {!typeofConfig}ToDelete = {!typeofConfig}SelectedData[iCount].name;
+	                        }
+	                    }
+	                 }
+                }
+                //Added for getting names of selected apex classes
                 
-                 if({!typeofConfig}SelectedData != null){
-                 	for(var iCount = 0;iCount < {!typeofConfig}SelectedData.length;iCount++){
-                 		if({!typeofConfig}ToDelete != ''){
-                    	{!typeofConfig}ToDelete = {!typeofConfig}SelectedData[iCount].name +','+ {!typeofConfig}ToDelete;
-                        }
-                        else{
-                            {!typeofConfig}ToDelete = {!typeofConfig}SelectedData[iCount].name;
-                        }
-                    }
+                else{
+	                 if({!typeofConfig}SelectedData != null){
+	                 	for(var iCount = 0;iCount < {!typeofConfig}SelectedData.length;iCount++){
+	                 		if({!typeofConfig}ToDelete != ''){
+	                    	{!typeofConfig}ToDelete = {!typeofConfig}SelectedData[iCount].configID +','+ {!typeofConfig}ToDelete;
+	                        }
+	                        else{
+	                            {!typeofConfig}ToDelete = {!typeofConfig}SelectedData[iCount].configID;
+	                        }
+	                    }
+	                 }
                  }
-                 if({!typeofConfig}ToDelete != null && {!typeofConfig}ToDelete.length > 0){ 
-    				CleanConfigurations{!typeofConfig}({!typeofConfig}ToDelete,'{!typeofConfig}');
+                 if({!typeofConfig}ToDelete != null && {!typeofConfig}ToDelete.length > 0){
+                 
+                 	//added for handling call base on config type
+                 	if('{!typeofConfig}'=='ApexClass'){
+                 		ApexClassDeletion({!typeofConfig}ToDelete,'{!typeofConfig}');
+                 	}
+    				else{
+    					CleanConfigurations{!typeofConfig}({!typeofConfig}ToDelete,'{!typeofConfig}');
+    				}
+    				//added for handling call base on config type
     			}
     			else{
-    				toastr.error('No Classes selected');
+                    hideLoader();
+    				toastr.error('No triggers selected');
     			}
 			}
-            
-	function toggleIcon(e) {
-        j$(e.target)
-            .prev('.panel-heading')
-            .find(".more-less")
-            .toggleClass('glyphicon-plus glyphicon-minus');
-    }
+          
+
     
             
             j$(document).delegate("#{!typeofConfig}byObjectDTTable .object{!typeofConfig}", "click", function() {
@@ -80,23 +98,21 @@
                 }
 			});
            j$(document).ready(function () {
-               j$('.panel-group').on('hidden.bs.collapse', toggleIcon);
-    			j$('.panel-group').on('shown.bs.collapse', toggleIcon);
-               debugger;
+               
                {!typeofConfig}SelectedTable = j$('#{!typeofConfig}SelectedDTTable').DataTable({
          		"paging":   false,
         		"ordering": false,
         		"info":     false
       			});
-                        for (var i = 0; i < apexPageData.data.length; i++) {
-                            var item = apexPageData.data[i];
+                        for (var i = 0; i < configJsonData{!typeofConfig}.data.length; i++) {
+                            var item = configJsonData{!typeofConfig}.data[i];
                             if(item.parent == ''){
                             	{!typeofConfig}ObjectData.push({
                                 	"name": item.name
                             	}); 
                             }
                         }
-                 debugger;
+                 
                     {!typeofConfig}PreviewTable = j$('#{!typeofConfig}byObjectDTTable').DataTable({
         			data: {!typeofConfig}ObjectData,
                         "oLanguage": {
@@ -119,32 +135,34 @@
                     			return data;
                 						}
             				}
-        		]});	
+        		]});
         		
+        		//added to initiate depedents tables with empty json
         		var emptyJson='{"data":[]}';
         		getDependentClasses(emptyJson);
                	getDependentPages(emptyJson);
               	getDependentTriggers(emptyJson);
+              	//added to initiate depedents tables with empty json	
 			});
            
             function loadSelected{!typeofConfig}Table(objectName,isSelected){
                 console.log(objectName);
                 
                  {!typeofConfig}SelectedData = [];
-                        for (var i = 0; i < apexPageData.data.length; i++) {
-                            var item = apexPageData.data[i];
+                        for (var i = 0; i < configJsonData{!typeofConfig}.data.length; i++) {
+                            var item = configJsonData{!typeofConfig}.data[i];
                             if(item.name == objectName){
                     			item.enbl = isSelected ? '1' : '0';
                             }	
                             if(item.enbl == '1'){
                             		{!typeofConfig}SelectedData.push({
-                                		"name": item.name
+                                		"name": item.name,
+                                        "configID":item.configID+'$'+item.name
                             		}); 
                                 }
                         }
                 {!typeofConfig}SelectedTable.destroy();
                 {!typeofConfig}SelectedTable = j$('#{!typeofConfig}SelectedDTTable').DataTable( {
-                
         			data: {!typeofConfig}SelectedData,
                     "oLanguage": {
                         "sInfo": "_TOTAL_ entries",//"_START_ to _END_ of _TOTAL_ entries",
@@ -154,22 +172,15 @@
                                 "sNext": ">"// This is the link to the next page
 							}
       					},
-                      columns: [{ "data": "name" }]});//,{ "data": "configID", "visible": false }
+					columns: [{ "data": "name" },{ "data": "configID", "visible": false }]});
                   
             }
-            
          	function CleanConfigurationsCompleted(){
+                hideLoader();
          	toastr.success('Batch is initiated. Email notification will be sent to you soon.');
          	}
          	
-         		
-         	
-         	function destroyTables(){
-         		dependentClassesTabel.destroy();
-         		dependentPagesTabel.destroy();
-         		dependentTriggersTabel.destroy();
-         	}
-         	
+         	//Added to prepare dependent tables
          	function getDependentClasses(dependentClasses) {
         		debugger;
         		//dependentClassesTabel.destroy();
@@ -253,9 +264,18 @@
 	         	] 
     	 		});
 			}
-			
-			
-			function CheckData(a,b,c){
+			//Added to prepare dependent tables
+         	
+         	//Added to destroy dependent tables
+         	function destroyTables(){
+         		dependentClassesTabel.destroy();
+         		dependentPagesTabel.destroy();
+         		dependentTriggersTabel.destroy();
+         	}
+         	//Added to destroy dependent tables
+         	
+         	//Added to display dependent tables in popup
+         	function CheckData(a,b,c){
 				destroyTables();
 				console.log("Inside console");
                 console.log(a);
@@ -265,13 +285,18 @@
                 getDependentPages(a);
                 getDependentTriggers(c);
 				j$('#load').modal('show');
+				CleanConfigurationsCompleted();
 			}
-			function callForDelete(){
+			//Added to display dependent tables in popup
+         	
+         	//call to delete classes
+         	function callForDelete(){
+         		//alert("Call given for delete classes");
 				deleteSelectedClasses();
-				alert("Action from bootstrap modal");
 			}
+			//call to delete classes
+         	
 		</script>
-	</head>
 	<body>
       
   
@@ -303,36 +328,43 @@
         		<thead>
             		<tr>
                 		<th>Name</th>
+                        <th></th>
             		</tr>
         		</thead>
         		<tfoot>
             		<tr>
                 		<th>Name</th>
+                        <th></th>
             		</tr>
         		</tfoot>
         		</table>
             </div>
              <div class="col-md-4"></div>
 		</div>
-		
 				<div class="btn-group" style="float:right;">
   <p><apex:outputText value="" id="view" /></p>
-  		
-        <apex:actionFunction name="CleanConfigurations{!typeofConfig}" action="{!dependents}" rerender="" oncomplete="dependentPages='{!dependentPagesJson}';dependentClasses='{!dependentClassesJson}';dependentTriggers='{!dependentTriggersJson}';CheckData(dependentPages,dependentClasses,dependentTriggers);">     
-     		<apex:param id="ConfigListParam" name="ConfigList"  assignTo="{!ConfigurationList}" value="{!typeofConfig}SelectedData" />
-            <apex:param id="configNameParam" name="configName"  assignTo="{!ConfigName}" value="{!typeofConfig}" />
+        <apex:actionFunction name="ApexClassDeletion" action="{!dependents}" rerender="" oncomplete="dependentPages='{!dependentPagesJson}';dependentClasses='{!dependentClassesJson}';dependentTriggers='{!dependentTriggersJson}';CheckData(dependentPages,dependentClasses,dependentTriggers);">     
+     		<apex:param id="ConfigListParam" name="ConfigList"  assignTo="{!ConfigurationList}" value="" />
+            <apex:param id="configNameParam" name="configName"  assignTo="{!ConfigName}" value="" />
  		</apex:actionFunction>
+ 		
  		<apex:actionFunction name="deleteSelectedClasses" action="{!deleteclasses}">
  			
  		</apex:actionFunction>
-        <apex:commandLink onclick="delete{!typeofConfig}();return false;">               
-       		 <apex:commandButton value="Proceed" styleClass="btn btn-default" /> 
-       		<!--<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#load">Confirm</button>-->
+ 		
+ 		<apex:actionFunction name="CleanConfigurations{!typeofConfig}" action="{!CleanConfigurations}" rerender="view" oncomplete="CleanConfigurationsCompleted();">     
+     		<apex:param id="ConfigListParameter" name="ConfigList"  assignTo="{!ConfigurationList}" value="" />
+            <apex:param id="configNameParameter" name="configName"  assignTo="{!ConfigName}" value="" />
+ 		</apex:actionFunction>
+ 		
+        <apex:commandLink onclick="delete{!typeofConfig}();return false;" rerender="">               
+       		<apex:commandButton value="Proceed" styleClass="btn btn-default" />
         </apex:commandLink>
 </div>
       
 	</body>
-<div class="modal fade" id="load" role="dialog">
+	
+	<div class="modal fade" id="load" role="dialog">
   <div class="modal-dialog modal-md">
    <!-- Modal content-->
    <div class="modal-content">
@@ -352,7 +384,7 @@
      <table id="selectedTriggers" class="display"></table>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal" onClick="callForDelete()">Confirm</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal" onClick="callForDelete();">Confirm</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
     </div>
    </div>
