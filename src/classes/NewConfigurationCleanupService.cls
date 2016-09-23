@@ -39,10 +39,10 @@ public with sharing class NewConfigurationCleanupService {
     
     public NewConfigurationCleanupService(){
     	System.debug('Inside comstructor');
-		List<ApexClass> lstAllAPexClasses=new List<ApexClass>();
-        lstAllAPexClasses=Configurationcleanupselector.getApexCsasses();
+		//List<ApexClass> lstAllAPexClasses=new List<ApexClass>();
+        //lstAllAPexClasses=Configurationcleanupselector.getApexCsasses();
         //getApexClass();
-        apexClassJson = ConfigurationCleanUpServiceHandler.generateJsonForApexPage(lstAllAPexClasses);    
+        //apexClassJson = ConfigurationCleanUpServiceHandler.generateJsonForApexPage(lstAllAPexClasses);    
         system.debug('**************************apexClassJson - ' + apexClassJson);    
     }
     
@@ -73,9 +73,10 @@ public with sharing class NewConfigurationCleanupService {
     		IsApexClass = true;
         	//apexClassList=new List<ApexClass>();
         	//apexClassList = ConfigurationSelector.getAllApexClasses();
+        	getApexClass();
         	System.debug('apexClassList='+apexClassList);
         	System.debug('apexClassJson=');
-        	//apexClassJson = NewConfigurationCleanUpServiceHandler.generateJsonForApexClass(apexClassList);
+        	apexClassJson = NewConfigurationCleanUpServiceHandler.generateJsonForApexClass(apexClassList);
         	System.debug('apexClassJson========================================================================================='+apexClassJson);
     	}
     }

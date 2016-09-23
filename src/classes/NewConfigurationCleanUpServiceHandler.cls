@@ -1,5 +1,7 @@
 public with sharing class NewConfigurationCleanUpServiceHandler {
-   public static string generateJsonForTrigger(Map<string, List<List<string>>> configurationList){
+	public static List<String> classesToDelete;
+	public static String sessionId;	
+   	public static string generateJsonForTrigger(Map<string, List<List<string>>> configurationList){
     	JSONGenerator gen = JSON.createGenerator(true);
         gen.writeStartObject();
         gen.writeFieldName('data');
@@ -183,30 +185,46 @@ public with sharing class NewConfigurationCleanUpServiceHandler {
         return gen.getAsString();
     }
     
+    
+    
     public static void deleteclasses(List<String> lstClassesToDelete,List<String> lstDependentClasses,List<String> lstDependentTriggers ,List<String> lstDependentPages)
     {
-    	List<ApexClass> lstclasses=new List<ApexClass>();
+    	classesToDelete=new List<String>();
+    	classesToDelete.addAll(lstClassesToDelete);
     	lstDependentClasses=SearchInClass(lstClassesToDelete);
     	lstDependentPages=SearchInPage(lstClassesToDelete);
     	lstDependentTriggers=SearchInTrigger(lstClassesToDelete);	
-    	String sessionId=UserInfo.getSessionId();
+    	sessionId=UserInfo.getSessionId();
     	Integer count = System.purgeOldAsyncJobs(Date.today()+1);
     	Database.executeBatch(new CommentDependentClassBatch(lstClassesToDelete,lstDependentClasses,sessionId),10);
     	Database.executeBatch(new CommentDependentTriggersBatch(lstClassesToDelete,lstDependentTriggers,sessionId),10);
     	Database.executeBatch(new CommentDependentPagesBatch(lstClassesToDelete,lstDependentPages,sessionId),10);
     	
-    	lstclasses=Configurationcleanupselector.getApexClasses(lstClassesToDelete);
+    	ScheduleDeletionBatch();	
     	
-    	String day = string.valueOf(system.now().day());
-        String month = string.valueOf(system.now().month());
-        String hour = string.valueOf(system.now().hour());
-        String minute = string.valueOf(system.now().minute() + 1);
-        String second = string.valueOf(system.now().second());
-        String year = string.valueOf(system.now().year());
-        
-        String strJobName = 'Job-' + second + '_' + minute + '_' + hour + '_' + day + '_' + month + '_' + year;
-        String strSchedule = '0 ' + minute + ' ' + hour + ' ' + day + ' ' + month + ' ?' + ' ' + year;
-        System.schedule(strJobName,strSchedule,new ApexClassDepetionScheduler(lstclasses,sessionId));
-        System.debug('Inside deleteCLassesMethod');
+    	
     }
+    
+    
+    public static void ScheduleDeletionBatch(){
+    	System.debug('In ScheduleDeletionBatch');
+    	List<ApexClass> lstclasses=new List<ApexClass>();
+        lstclasses=Configurationcleanupselector.getApexClasses(classesToDelete);
+        DeleteclassesBatch deletionBatch=new DeleteclassesBatch(lstclasses,sessionId);
+        BatchScheduler scheduler = new BatchScheduler();
+        scheduler.batchClass = deletionBatch;
+       	if(BatchScheduler.schedulestatus==false || BatchScheduler.schedulestatus==null){
+       		String day = string.valueOf(system.now().day());
+	        String month = string.valueOf(system.now().month());
+	        String hour = string.valueOf(system.now().hour());
+	        String minute = string.valueOf(system.now().minute()+1);
+	        String second = string.valueOf(system.now().second());
+	        String year = string.valueOf(system.now().year());
+	        String strJobName = 'Job-' + second + '_' + minute + '_' + hour + '_' + day + '_' + month + '_' + year;
+	        String strSchedule = '0 ' + minute + ' ' + hour + ' ' + day + ' ' + month + ' ?' + ' ' + year;
+       		System.schedule(strJobName,strSchedule,scheduler);
+        }
+        System.debug('In ScheduleDeletionBatch');
+    }
+   
 }
